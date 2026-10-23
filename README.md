@@ -1,5 +1,7 @@
 # ci-images
 
+[![CI](https://github.com/AGLFlorida/ci-images/actions/workflows/ci.yml/badge.svg)](https://github.com/AGLFlorida/ci-images/actions/workflows/ci.yml)
+
 Shared CI container images for AGLFlorida repos, published to GHCR.
 
 ## Layout
