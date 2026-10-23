@@ -1,0 +1,69 @@
+name: Publish images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'images/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'images/**'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  list:
+    name: list images
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.list.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: List image directories
+        id: list
+        run: |
+          matrix=$(find images -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | sort | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  publish:
+    name: build and push
+    needs: list
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image: ${{ fromJson(needs.list.outputs.matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Read image version
+        id: version
+        run: echo "version=$(cat images/${{ matrix.image }}/VERSION)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: images/${{ matrix.image }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ghcr.io/aglflorida/ci-${{ matrix.image }}:${{ steps.version.outputs.version }}
+            ghcr.io/aglflorida/ci-${{ matrix.image }}:latest
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
