@@ -9,7 +9,16 @@ on:
     branches: [main]
     paths:
       - 'images/**'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      image:
+        description: Image to publish
+        type: choice
+        default: all
+        # workflow_dispatch choices are static; add new image dirs here too.
+        options:
+          - all
+          - playwright
 
 permissions:
   contents: read
@@ -37,8 +46,14 @@ jobs:
 
       - name: List image directories
         id: list
+        env:
+          SELECTED_IMAGE: ${{ inputs.image }}
         run: |
-          matrix=$(find images -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | sort | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          if [ -n "$SELECTED_IMAGE" ] && [ "$SELECTED_IMAGE" != "all" ]; then
+            matrix=$(jq -R -s -c 'split("\n") | map(select(length > 0))' <<< "$SELECTED_IMAGE")
+          else
+            matrix=$(find images -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | sort | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          fi
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
 
   publish:
