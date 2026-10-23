@@ -1,14 +1,7 @@
 name: Publish images
+run-name: "Publish: ${{ inputs.image }}"
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'images/**'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'images/**'
   workflow_dispatch:
     inputs:
       image:
