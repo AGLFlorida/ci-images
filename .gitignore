@@ -1,0 +1,33 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Env / secrets
+.env
+.env.*
+*.local
+
+# Logs
+*.log
+
+# Docker
+*.tar
+*.tar.gz
+
+# Trivy / scan output
+trivy-results*.json
+trivy-results*.sarif
+*.sarif
+
+# Temp
+tmp/
+.tmp/
+
+# Local env config
+.claudenvrc
