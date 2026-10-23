@@ -17,6 +17,7 @@ jobs:
   list:
     name: list images
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       matrix: ${{ steps.list.outputs.matrix }}
     steps:
@@ -43,6 +44,7 @@ jobs:
     name: hadolint (${{ matrix.image }})
     needs: list
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     strategy:
       matrix:
         image: ${{ fromJson(needs.list.outputs.matrix) }}
@@ -70,6 +72,7 @@ jobs:
   actionlint:
     name: actionlint
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
       checks: write
@@ -99,6 +102,7 @@ jobs:
     name: trivy (${{ matrix.image }})
     needs: list
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       matrix:
         image: ${{ fromJson(needs.list.outputs.matrix) }}
