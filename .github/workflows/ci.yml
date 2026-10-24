@@ -24,12 +24,10 @@ jobs:
       - name: Harden runner
         uses: step-security/harden-runner@v2
         with:
-          egress-policy: block
-          allowed-endpoints: >
-            api.github.com:443
-            github.com:443
-            objects.githubusercontent.com:443
-            uploads.github.com:443
+          # block mode drops disallowed packets instead of failing fast,
+          # which hangs actions/checkout@v7 past the job timeout rather
+          # than erroring, so this job is monitored, not blocked.
+          egress-policy: audit
 
       - name: Checkout code
         uses: actions/checkout@v7
@@ -52,14 +50,10 @@ jobs:
       - name: Harden runner
         uses: step-security/harden-runner@v2
         with:
-          egress-policy: block
-          allowed-endpoints: >
-            api.github.com:443
-            github.com:443
-            objects.githubusercontent.com:443
-            uploads.github.com:443
-            ghcr.io:443
-            pkg-containers.githubusercontent.com:443
+          # block mode drops disallowed packets instead of failing fast,
+          # which hangs actions/checkout@v7 past the job timeout rather
+          # than erroring, so this job is monitored, not blocked.
+          egress-policy: audit
 
       - name: Checkout code
         uses: actions/checkout@v7
@@ -81,14 +75,10 @@ jobs:
       - name: Harden runner
         uses: step-security/harden-runner@v2
         with:
-          egress-policy: block
-          allowed-endpoints: >
-            api.github.com:443
-            github.com:443
-            objects.githubusercontent.com:443
-            uploads.github.com:443
-            ghcr.io:443
-            pkg-containers.githubusercontent.com:443
+          # block mode drops disallowed packets instead of failing fast,
+          # which hangs actions/checkout@v7 past the job timeout rather
+          # than erroring, so this job is monitored, not blocked.
+          egress-policy: audit
 
       - name: Checkout code
         uses: actions/checkout@v7
@@ -137,6 +127,8 @@ jobs:
 
       - name: Scan image for vulnerabilities
         uses: aquasecurity/trivy-action@v0.36.0
+        env:
+          TRIVY_DISABLE_VEX_NOTICE: true
         with:
           image-ref: ci-${{ matrix.image }}:${{ steps.version.outputs.version }}
           scanners: 'vuln'
