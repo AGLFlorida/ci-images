@@ -1,0 +1,8 @@
+{
+  "name": "ci-playwright-firebase",
+  "private": true,
+  "description": "Pins firebase-tools version for dependabot; installed globally in the Dockerfile.",
+  "dependencies": {
+    "firebase-tools": "15.34.1"
+  }
+}

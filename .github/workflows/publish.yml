@@ -12,6 +12,7 @@ on:
         options:
           - all
           - playwright
+          - playwright-firebase
 
 permissions:
   contents: read
