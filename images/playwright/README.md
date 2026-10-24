@@ -15,8 +15,7 @@ image and the npm package will error at runtime. Check the image's labels or thi
 the bundled Playwright version; don't assume the image tag matches it.
 
 Bumping Playwright means updating the `Dockerfile`'s `PLAYWRIGHT_VERSION` default and this
-README, then cutting a new `VERSION` via `publish.yml`'s `workflow_dispatch` `bump` input (or
-by hand) so the image tag changes too.
+README, then bumping `VERSION` by hand so the image tag changes too.
 
 ## Usage
 

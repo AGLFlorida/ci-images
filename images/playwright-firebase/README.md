@@ -24,8 +24,8 @@ firebase-tools versions it bundles, each of which is pinned separately:
   has no apt ecosystem.
 
 None of those tool versions are reflected in this image's own tag. Check this README or the
-Dockerfile for what a given tag actually bundles. Bump `VERSION` via `publish.yml`'s
-`workflow_dispatch` `bump` input (or by hand) whenever any of them change.
+Dockerfile for what a given tag actually bundles. Bump `VERSION` by hand whenever any of them
+change.
 
 ## Usage
 

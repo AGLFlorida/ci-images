@@ -20,8 +20,7 @@ images/
   (browsers, interpreters, OS deps), not app code or secrets.
 - `VERSION` holds this image's own semver (`major.minor.patch`), independent of any
   bundled tool's version - the publish workflow tags the image with it alongside `latest`.
-  Bump it by hand, or via `publish.yml`'s `workflow_dispatch` `bump` input
-  (`patch`/`minor`/`major`), whenever the image's contents change.
+  Bump it by hand whenever the image's contents change.
 - `README.md` documents what the image bundles and how consuming repos should reference it.
 
 Adding a new image means adding a new directory here. Push-triggered builds and
