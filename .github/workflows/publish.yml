@@ -84,14 +84,28 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Read image description
+        id: image-meta
+        run: |
+          description=$(sed -n 's/^LABEL org\.opencontainers\.image\.description="\(.*\)"$/\1/p' "images/${{ matrix.image }}/Dockerfile")
+          echo "description=$description" >> "$GITHUB_OUTPUT"
+
       - name: Extract metadata
         id: meta
+        env:
+          # metadata-action defaults to annotating only the per-platform
+          # manifests; GHCR's package page reads the index annotations,
+          # which are otherwise left empty.
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: index,manifest
         uses: docker/metadata-action@v6
         with:
           images: ghcr.io/aglflorida/ci-${{ matrix.image }}
           tags: |
             type=raw,value=${{ steps.version.outputs.version }}
             type=raw,value=latest
+          labels: |
+            org.opencontainers.image.title=ci-${{ matrix.image }}
+            org.opencontainers.image.description=${{ steps.image-meta.outputs.description }}
 
       - name: Build and push
         uses: docker/build-push-action@v7
