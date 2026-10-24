@@ -9,13 +9,28 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   list:
     name: list images
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       matrix: ${{ steps.list.outputs.matrix }}
     steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            uploads.github.com:443
+
       - name: Checkout code
         uses: actions/checkout@v7
 
@@ -29,10 +44,23 @@ jobs:
     name: hadolint (${{ matrix.image }})
     needs: list
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     strategy:
       matrix:
         image: ${{ fromJson(needs.list.outputs.matrix) }}
     steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            uploads.github.com:443
+            ghcr.io:443
+            pkg-containers.githubusercontent.com:443
+
       - name: Checkout code
         uses: actions/checkout@v7
 
@@ -44,11 +72,24 @@ jobs:
   actionlint:
     name: actionlint
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
       checks: write
       pull-requests: write
     steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            uploads.github.com:443
+            ghcr.io:443
+            pkg-containers.githubusercontent.com:443
+
       - name: Checkout code
         uses: actions/checkout@v7
 
@@ -61,10 +102,19 @@ jobs:
     name: trivy (${{ matrix.image }})
     needs: list
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       matrix:
         image: ${{ fromJson(needs.list.outputs.matrix) }}
     steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@v2
+        with:
+          # mcr.microsoft.com redirects blob pulls to a region-specific CDN
+          # host (e.g. eastus.data.mcr.microsoft.com) that harden-runner
+          # can't allowlist exactly, so this job is monitored, not blocked.
+          egress-policy: audit
+
       - name: Checkout code
         uses: actions/checkout@v7
 
@@ -73,10 +123,10 @@ jobs:
         run: echo "version=$(cat images/${{ matrix.image }}/VERSION)" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build image (local only)
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: images/${{ matrix.image }}
           push: false
@@ -86,7 +136,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
 
       - name: Scan image for vulnerabilities
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ci-${{ matrix.image }}:${{ steps.version.outputs.version }}
           scanners: 'vuln'
