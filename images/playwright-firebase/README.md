@@ -7,15 +7,20 @@ carry.
 
 ## Version pinning
 
-The `VERSION` file holds the `@playwright/test` version this image bundles, same as
-`ci-playwright`. Consuming repos must use a matching `@playwright/test` version in
-`package.json`.
+`VERSION` holds this image's own semver - it's independent of the Playwright, JRE, and
+firebase-tools versions it bundles, each of which is pinned separately:
 
-The `firebase-tools` version is pinned separately in this directory's `package.json`
-(dependabot's `npm` ecosystem tracks it there). It isn't tied to the Playwright version.
+- Playwright: the `Dockerfile`'s `PLAYWRIGHT_VERSION` build arg. Consuming repos must use a
+  matching `@playwright/test` version in `package.json`, since the browser binaries are
+  version-pinned and a mismatch between the image and the npm package will error at runtime.
+- `firebase-tools`: this directory's `package.json` (dependabot's `npm` ecosystem tracks it
+  there).
+- JRE: the `openjdk-21-jre-headless` apt pin in the `Dockerfile`, bumped by hand - dependabot
+  has no apt ecosystem.
 
-When bumping Playwright, update both `VERSION` and the `Dockerfile`'s `PLAYWRIGHT_VERSION`
-default, then let the publish workflow build and push the new tag.
+None of those tool versions are reflected in the image tag. Check this README or the
+Dockerfile for what a given tag actually bundles. Bump `VERSION` via `publish.yml`'s
+`workflow_dispatch` `bump` input (or by hand) whenever any of them change.
 
 ## Usage
 
@@ -24,7 +29,7 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/aglflorida/ci-playwright-firebase:1.64.1
+      image: ghcr.io/aglflorida/ci-playwright-firebase:0.2.0
     steps:
       - uses: actions/checkout@v7
       - run: npm ci

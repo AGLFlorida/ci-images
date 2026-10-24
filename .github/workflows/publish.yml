@@ -13,6 +13,15 @@ on:
           - all
           - playwright
           - playwright-firebase
+      bump:
+        description: Version bump to apply before publishing
+        type: choice
+        default: none
+        options:
+          - none
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: read
@@ -49,9 +58,53 @@ jobs:
           fi
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
 
+  bump:
+    name: bump version
+    needs: list
+    if: github.event_name == 'workflow_dispatch' && inputs.bump != 'none'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Bump VERSION files
+        env:
+          BUMP: ${{ inputs.bump }}
+          IMAGES: ${{ needs.list.outputs.matrix }}
+        run: |
+          set -euo pipefail
+          for image in $(jq -r '.[]' <<< "$IMAGES"); do
+            file="images/${image}/VERSION"
+            IFS='.' read -r major minor patch < "$file"
+            case "$BUMP" in
+              major) major=$((major + 1)); minor=0; patch=0 ;;
+              minor) minor=$((minor + 1)); patch=0 ;;
+              patch) patch=$((patch + 1)) ;;
+            esac
+            echo "${major}.${minor}.${patch}" > "$file"
+            echo "bumped ${image}: $(cat "$file")"
+          done
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add images/*/VERSION
+          git commit -m "[skip ci] chore: ${{ inputs.bump }} version bump (${{ inputs.image }})"
+          git push
+
   publish:
     name: build and push
-    needs: list
+    needs: [list, bump]
+    if: always() && needs.list.result == 'success' && needs.bump.result != 'failure'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
