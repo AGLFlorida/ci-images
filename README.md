@@ -47,7 +47,7 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/aglflorida/ci-playwright:1.64.1
+      image: ghcr.io/aglflorida/ci-<image-name>:<version>
     steps:
       - uses: actions/checkout@v7
       - run: npm ci
