@@ -1,4 +1,4 @@
-ARG CI_PLAYWRIGHT_VERSION=0.1.0
+ARG CI_PLAYWRIGHT_VERSION=latest
 
 FROM ghcr.io/aglflorida/ci-playwright:${CI_PLAYWRIGHT_VERSION}
 
