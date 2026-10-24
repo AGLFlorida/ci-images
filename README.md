@@ -23,8 +23,11 @@ images/
   pinned version changes.
 - `README.md` documents what the image bundles and how consuming repos should reference it.
 
-Adding a new image means adding a new directory here - no changes to the publish workflow
-are needed; it discovers image directories automatically.
+Adding a new image means adding a new directory here. Push-triggered builds and
+`workflow_dispatch`'s `all` option discover image directories automatically. The
+`workflow_dispatch` input's per-image choices are a static list, though (GitHub Actions
+doesn't support dynamic choices) - add the new directory name to `publish.yml`'s `options`
+too if you want to be able to publish it individually via the dispatch UI.
 
 ## Publishing
 
@@ -44,7 +47,7 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/aglflorida/ci-playwright:1.64.1
+      image: ghcr.io/aglflorida/ci-<image-name>:<version>
     steps:
       - uses: actions/checkout@v7
       - run: npm ci
