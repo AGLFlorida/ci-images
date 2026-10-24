@@ -1,0 +1,46 @@
+name: Bug report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+
+  - type: input
+    id: image
+    attributes:
+      label: Image
+      placeholder: images/playwright
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. docker build -t ci-playwright:test images/playwright
+        2. ...
+    validations:
+      required: true
+
+  - type: input
+    id: workflow-run
+    attributes:
+      label: Workflow run link
+      description: Link to the failing GitHub Actions run, if applicable
+      placeholder: https://github.com/AGLFlorida/ci-images/actions/runs/...
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Relevant logs, output, or screenshots
+    validations:
+      required: false
