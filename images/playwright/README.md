@@ -7,12 +7,15 @@ required OS-level dependencies, so `npx playwright install --with-deps` is not n
 
 ## Version pinning
 
-The `VERSION` file holds the `@playwright/test` version this image bundles. Consuming repos
-must use a matching `@playwright/test` version in `package.json` - the browser binaries are
-version-pinned and a mismatch between the image and the npm package will error at runtime.
+`VERSION` holds this image's own semver, independent of the bundled Playwright version. The
+`Dockerfile`'s `PLAYWRIGHT_VERSION` build arg pins the actual `@playwright/test` version this
+image bundles - consuming repos must use a matching `@playwright/test` version in
+`package.json`, since the browser binaries are version-pinned and a mismatch between the
+image and the npm package will error at runtime. Check the image's labels or this README for
+the bundled Playwright version; don't assume the image tag matches it.
 
-When bumping, update both `VERSION` and the `Dockerfile`'s `PLAYWRIGHT_VERSION` default, then
-let the publish workflow build and push the new tag.
+Bumping Playwright means updating the `Dockerfile`'s `PLAYWRIGHT_VERSION` default and this
+README, then bumping `VERSION` by hand so the image tag changes too.
 
 ## Usage
 
@@ -21,7 +24,7 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/aglflorida/ci-playwright:1.64.1
+      image: ghcr.io/aglflorida/ci-playwright:0.2.0
     steps:
       - uses: actions/checkout@v7
       - run: npm ci

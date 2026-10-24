@@ -106,6 +106,20 @@ jobs:
           labels: |
             org.opencontainers.image.title=ci-${{ matrix.image }}
             org.opencontainers.image.description=${{ steps.image-meta.outputs.description }}
+          # labels: and annotations: are separate inputs in this action -
+          # setting one does not populate the other.
+          annotations: |
+            org.opencontainers.image.title=ci-${{ matrix.image }}
+            org.opencontainers.image.description=${{ steps.image-meta.outputs.description }}
+
+      - name: Resolve cross-image build args
+        id: build-args
+        run: |
+          args=""
+          if [ "${{ matrix.image }}" = "playwright-firebase" ]; then
+            args="CI_PLAYWRIGHT_VERSION=$(cat images/playwright/VERSION)"
+          fi
+          echo "args=$args" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
         uses: docker/build-push-action@v7
@@ -114,6 +128,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           annotations: ${{ steps.meta.outputs.annotations }}
+          build-args: ${{ steps.build-args.outputs.args }}
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
 

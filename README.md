@@ -18,9 +18,9 @@ images/
 
 - `Dockerfile` builds the image. Keep it minimal - this repo holds base toolchain layers
   (browsers, interpreters, OS deps), not app code or secrets.
-- `VERSION` holds the semantic tag the publish workflow pushes alongside `latest`
-  (e.g. the upstream tool version the image bundles). Bump it whenever the Dockerfile's
-  pinned version changes.
+- `VERSION` holds this image's own semver (`major.minor.patch`), independent of any
+  bundled tool's version - the publish workflow tags the image with it alongside `latest`.
+  Bump it by hand whenever the image's contents change.
 - `README.md` documents what the image bundles and how consuming repos should reference it.
 
 Adding a new image means adding a new directory here. Push-triggered builds and
