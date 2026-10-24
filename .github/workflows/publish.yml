@@ -83,13 +83,40 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/aglflorida/ci-${{ matrix.image }}
+          tags: |
+            type=raw,value=${{ steps.version.outputs.version }}
+            type=raw,value=latest
+
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
           context: images/${{ matrix.image }}
           push: ${{ github.event_name != 'pull_request' }}
-          tags: |
-            ghcr.io/aglflorida/ci-${{ matrix.image }}:${{ steps.version.outputs.version }}
-            ghcr.io/aglflorida/ci-${{ matrix.image }}:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          annotations: ${{ steps.meta.outputs.annotations }}
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+
+  cleanup:
+    name: prune old versions (${{ matrix.image }})
+    needs: [list, publish]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      packages: write
+    strategy:
+      matrix:
+        image: ${{ fromJson(needs.list.outputs.matrix) }}
+    steps:
+      - name: Keep latest 5 versions
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: ci-${{ matrix.image }}
+          package-type: container
+          min-versions-to-keep: 5
