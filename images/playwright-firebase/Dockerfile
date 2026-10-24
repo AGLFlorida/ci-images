@@ -1,6 +1,6 @@
-ARG PLAYWRIGHT_VERSION=1.64.1
+ARG CI_PLAYWRIGHT_VERSION=0.1.0
 
-FROM ghcr.io/aglflorida/ci-playwright:${PLAYWRIGHT_VERSION}
+FROM ghcr.io/aglflorida/ci-playwright:${CI_PLAYWRIGHT_VERSION}
 
 LABEL org.opencontainers.image.source="https://github.com/AGLFlorida/ci-images"
 LABEL org.opencontainers.image.description="ci-playwright plus a JRE and firebase-tools, for e2e jobs that run against Firebase emulators"
