@@ -116,8 +116,25 @@ jobs:
         image: ${{ fromJson(needs.list.outputs.matrix) }}
     steps:
       - name: Keep latest 5 versions
-        uses: actions/delete-package-versions@v5
-        with:
-          package-name: ci-${{ matrix.image }}
-          package-type: container
-          min-versions-to-keep: 5
+        # actions/delete-package-versions is unmaintained (last release
+        # v5.0.0, Jan 2024) and still declares `using: node20`, which
+        # runners now flag as deprecated. Community fixes sit unmerged
+        # upstream, so there is nothing to bump to - inline the same
+        # "keep N newest untagged versions" behavior via the API instead.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE_NAME: ci-${{ matrix.image }}
+          KEEP: 5
+        run: |
+          set -euo pipefail
+          mapfile -t ids < <(gh api --paginate \
+            "/orgs/AGLFlorida/packages/container/${PACKAGE_NAME}/versions?per_page=100" \
+            | jq -r --argjson keep "${KEEP}" '
+              [.[] | select((.metadata.container.tags // []) | length == 0)]
+              | sort_by(.created_at) | reverse | .[$keep:] | .[:50] | .[].id')
+          for id in "${ids[@]}"; do
+            gh api --method DELETE \
+              "/orgs/AGLFlorida/packages/container/${PACKAGE_NAME}/versions/${id}" \
+              || echo "warn: could not delete version ${id}"
+          done
